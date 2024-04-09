@@ -12,19 +12,21 @@
     }
 
     #game-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
+        position: relative;
+        width: 100%;
+        height: 200px;
+        border: 1px solid #ccc;
     }
 
     #dino {
         width: 44px;
         height: 47px;
-        background-image: url('dino.png');
+        background-image: url('Dino.png');
         background-repeat: no-repeat;
         background-position: 0 0;
-        position: relative;
+        position: absolute;
+        bottom: 0;
+        left: 50px;
     }
 
     .cactus {
@@ -45,20 +47,42 @@
 </head>
 <body>
 <div id="game-container">
-    <div id="Dino"></div>
+    <div id="dino"></div>
 </div>
 <div id="score">0</div>
 <script>
     const dino = document.getElementById('dino');
     const gameContainer = document.getElementById('game-container');
     let score = 0;
+    let isJumping = false;
 
     function jump() {
-        if (dino.classList != 'animate') {
-            dino.classList.add('animate');
-            setTimeout(() => {
-                dino.classList.remove('animate');
-            }, 300);
+        if (!isJumping) {
+            isJumping = true;
+            let dinoBottom = 0;
+            let gravity = 0.9;
+            let jumpCount = 0;
+            let jumpInterval = setInterval(() => {
+                let dinoTop = parseInt(window.getComputedStyle(dino).getPropertyValue('bottom'));
+                if (dinoTop >= 150) {
+                    clearInterval(jumpInterval);
+                    let fallInterval = setInterval(() => {
+                        if (dinoBottom <= 0) {
+                            clearInterval(fallInterval);
+                            dino.style.bottom = '0px';
+                            isJumping = false;
+                        } else {
+                            dinoBottom -= 5;
+                            dino.style.bottom = dinoBottom + 'px';
+                        }
+                    }, 20);
+                } else {
+                    dinoBottom += 30;
+                    dinoBottom *= gravity;
+                    dino.style.bottom = dinoBottom + 'px';
+                }
+                jumpCount++;
+            }, 20);
         }
     }
 
@@ -71,23 +95,23 @@
     function createCactus() {
         const cactus = document.createElement('div');
         cactus.classList.add('cactus');
-        cactus.style.left = '100vw';
+        cactus.style.left = '100%';
         gameContainer.appendChild(cactus);
 
         let cactusPosition = 100;
 
         const moveCactus = setInterval(() => {
             cactusPosition -= 5;
-            cactus.style.left = cactusPosition + 'px';
+            cactus.style.left = cactusPosition + '%';
 
-            if (cactusPosition < -60) {
+            if (cactusPosition < -20) {
                 clearInterval(moveCactus);
                 gameContainer.removeChild(cactus);
                 score++;
                 document.getElementById('score').innerText = score;
             }
 
-            if (cactusPosition > 0 && cactusPosition < 60 && dino.style.bottom == '0px') {
+            if (cactusPosition > 0 && cactusPosition < 20 && dino.style.bottom == '0px') {
                 clearInterval(moveCactus);
                 alert('Game Over! Your score is: ' + score);
                 score = 0;
